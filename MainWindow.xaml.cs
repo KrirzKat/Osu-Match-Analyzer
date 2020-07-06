@@ -256,27 +256,34 @@ namespace QualifierAnalyzer
             scores.Sort();
             scores.Reverse();
 
+            //Empty the text
             WinnerBlock.Text = "";
+            //Loop through all the scores
             for (int i = 0; i < scores.Count; i++)
             {
+                //Loop through the scores again, for sorting
                 for (int j = 0; j < scores.Count; j++)
                 {
+                    //If the tmp score equals the sorted scores...
                     if (tmpScores[i] == scores[j])
                     {
+                        //Set the sorted ID to the ID at index i
                         sortedIDs[j] = playerIDs[i];
                     }
                 }
             }
 
+            //Loop through again to display the scores
             for(int i = 0; i < scores.Count; i++)
             {
+                //This checks each condition to display. It makes sure that even if it goes over 10, it still works.
                 if (i == 0)
                     WinnerBlock.Text = String.Format("{0} wins with a score of {1:#,##0}!", GetName(sortedIDs[i]), scores[i]);
-                else if (i.ToString().EndsWith('0'))
+                else if (i.ToString().EndsWith('0') && i != 11)
                     WinnerBlock.Text += String.Format("\n{0} is in {1}st with a score of {2:#,##0}!", GetName(sortedIDs[i]), i + 1, scores[i]);
-                else if (i.ToString().EndsWith('1'))
+                else if (i.ToString().EndsWith('1') && i != 12)
                     WinnerBlock.Text += String.Format("\n{0} is in {1}nd with a score of {2:#,##0}!", GetName(sortedIDs[i]), i + 1, scores[i]);
-                else if (i.ToString().EndsWith('2'))
+                else if (i.ToString().EndsWith('2') && i != 13)
                     WinnerBlock.Text += String.Format("\n{0} is in {1}rd with a score of {2:#,##0}!", GetName(sortedIDs[i]), i + 1, scores[i]);
                 else
                     WinnerBlock.Text += String.Format("\n{0} is in {1}th with a score of {2:#,##0}!", GetName(sortedIDs[i]), i + 1, scores[i]);
@@ -286,30 +293,43 @@ namespace QualifierAnalyzer
         //Gets the name of the user who won.
         private string GetName(int id)
         {
+            //Sets a new string to null.
             string name = null;
+
+            //Using the WebClient, write to a new file the contents of the page from the user ID passed in
             using(WebClient client = new WebClient())
             {
                 File.WriteAllText("tmp.txt", client.DownloadString("https://osu.ppy.sh/users/" + id));
             }
 
+            //Read all those lines, and store them in an array of strings
+            //This is unfortunately slow, and I need to think of a way better way of doing things.
             string[] contents = File.ReadAllLines("tmp.txt");
 
-            
+            //Loop through the contents of the string
             for(int i = 0; i < contents.Length; i++)
             {
+                //If the line contains the title
                 if (contents[i].Contains("<title>"))
                 {
+                    
                     int j = 14;
+                    //Starting at the 14th character, if the char does not contain a space...
                     while(contents[i][j] != ' ')
                     {
+                        //Increment j, and add the contents to name
                         j++;
                         name += contents[i][j];
-                        
                     }
                 }
             }
 
+            //Delete the file a little too late
+            File.Delete("tmp.txt");
+            //Replace all instances of &nbsp with a space. 
+            //This could just denote certain special characters, which will be fixed if reported
             name = name.Replace("&nbsp;", " ");
+            //Return the name
             return name;
         }
         
